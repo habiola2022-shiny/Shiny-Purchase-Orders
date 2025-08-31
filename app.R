@@ -1,39 +1,67 @@
 library(shiny)
 library(DT)
-library(ggplot2)
-library(plotly)
-library(dplyr)
+library(bslib)
 library(readr)
 library(readxl)
-library(bslib)
 
 # modules
 source("modules/mod_upload.R")
-source("modules/mod_filters.R")
-source("modules/mod_clustering.R")
-source("modules/mod_aiquery.R")
 source("modules/mod_table.R")
-source("modules/mod_plots.R")
-#source("modules/mod_summary.R")   # don't forget this one!
+source("modules/mod_filters.R")
+source("modules/mod_dashboardplots.R")
+
+# Professional theme
+theme <- bs_theme(
+  version = 5,
+  bootswatch = "cosmo",
+  base_font = font_google("Inter"),
+  heading_font = font_google("Poppins"),
+  code_font = font_google("Fira Mono")
+)
 
 ui <- page_fillable(
-  theme = bs_theme(version = 5, bootswatch = "cosmo"),  # ✅ close bs_theme() here
+  theme = bs_theme(version = 5),  # keep base bootstrap, light
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "style.css"),
+    tags$link(rel="preconnect", href="https://fonts.googleapis.com"),
+    tags$link(rel="preconnect", href="https://fonts.gstatic.com", crossorigin=NA),
+    tags$link(href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600&display=swap", 
+              rel="stylesheet")
+  ),
   
-  titlePanel("Purchase Order Insights"),
+  # Header
+  page_navbar(
+    title = "Purchase Order Insights",
+    nav_spacer()
+  ),
   
-  sidebarLayout(
-    sidebarPanel(
-      mod_upload_ui("upload"),
-      mod_filters_ui("filters"),
-      mod_clustering_ui("clustering"),
-      mod_aiquery_ui("aiquery")
+  layout_sidebar(
+    sidebar = sidebar(
+      width = 400,
+      class = "bg-light p-3 rounded shadow-sm",
+      h5("⚙️ Controls", class = "fw-bold mb-3"),
+      card(
+        card_header("Upload Data"),
+        card_body(mod_upload_ui("upload"))
+      ),
+      card(
+        card_header("Filters"),
+        card_body(mod_filters_ui("filters"))
+      )
     ),
-    mainPanel(
-      tabsetPanel(
-        id = "main_tabs",
-        #tabPanel("Summary", mod_summary_ui("summary")),
-        tabPanel("Data Table", mod_table_ui("table")),
-        tabPanel("Plots", mod_plots_ui("plots"))
+    fill = TRUE,
+    card(
+      full_screen = TRUE,
+      card_header("Results"),
+      card_body(
+        tabsetPanel(
+          type = "pills",
+          tabPanel("Data Table", mod_table_ui("table")),
+          tabPanel(
+            "Dashboard",
+            mod_dashboardplots_ui("dashboard")
+          )
+        )
       )
     )
   )
@@ -42,12 +70,9 @@ ui <- page_fillable(
 server <- function(input, output, session) {
   data <- mod_upload_server("upload")
   filtered <- mod_filters_server("filters", data)
-  clustered <- mod_clustering_server("clustering", filtered)
-  queried <- mod_aiquery_server("aiquery", clustered)
+  mod_table_server("table", filtered)
+  mod_dashboardplots_server("dashboard", filtered)
   
-  mod_table_server("table", queried)
-  mod_plots_server("plots", queried)
-  #mod_summary_server("summary", data, parent_session = session)
 }
 
 shinyApp(ui, server)
