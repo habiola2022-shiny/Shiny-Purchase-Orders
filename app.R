@@ -1,8 +1,12 @@
 library(shiny)
 library(DT)
-library(bslib)
+library(ggplot2)
+library(plotly)
+library(dplyr)
 library(readr)
 library(readxl)
+library(bslib)
+
 
 # modules
 source("modules/mod_upload.R")
