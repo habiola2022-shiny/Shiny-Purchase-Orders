@@ -1,0 +1,10 @@
+name: uploads
+title:
+username: habiola-shiny
+account: habiola-shiny
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15313582
+bundleId:
+url: https://habiola-shiny.shinyapps.io/uploads/
+version: 1
